@@ -42,15 +42,17 @@ def create_month_sheet(month, year=2025):
     df = pd.DataFrame(data)
 
     # Load data into the worksheet, starting from row 15
-    for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), 15):
-        ws.append(row)
+    final_df = dataframe_to_rows(df, index=False, header=True)
+    for row_idx, row in enumerate(final_df, start=15):
+        ws.cell(row=row_idx, column=1).value = row[0]
+        ws.append(row)# Needs be arranged for proper alignment
 
     # Calculate averages and remarks
     for row in range(16, 16 + len(workers)):
-        cell = ws.cell(row, len(dates) + 2)
-        cell.value = f'=AVERAGE({ws.cell(row, 2).coordinate}:{ws.cell(row, 1 + len(dates)).coordinate})'
+        ave_cell = ws.cell(row, len(dates) + 2)
+        ave_cell.value = f'=AVERAGE({ws.cell(row, 2).coordinate}:{ws.cell(row, 1 + len(dates)).coordinate})'
         remark_cell = ws.cell(row, len(dates) + 3)
-        remark_cell.value = f'=IF({cell.coordinate}>0.9,"Excellent",IF({cell.coordinate}>0.75,"Good",IF({cell.coordinate}>0.5,"Average","Poor")))'
+        remark_cell.value = f'=IF({ave_cell.coordinate}>0.9,"Excellent",IF({ave_cell.coordinate}>0.75,"Good",IF({ave_cell.coordinate}>0.5,"Average","Poor")))'
 
     # Chart for the average daily attendance
     chart = BarChart()

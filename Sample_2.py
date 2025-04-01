@@ -81,7 +81,6 @@ def add_summary(workbook, workers, total_days_dict):
                     dv.add(f"E{row}:AA{row}")
 
 
-
                 elif total_days == 22:
                     opt_list = list(dict_day[22].values())
                     sheet.cell(row=row, column=column ).value = f"=COUNTIF(E{row}:Z{row},${opt_list[position]}$17)"
@@ -133,7 +132,6 @@ def plot_charts(workbook, workers, total_days_dict):
         data_1 = Reference(sheet, min_col=avg_col, min_row=18, max_row=18 + len(workers))
         chart_1.add_data(data_1, titles_from_data=True)
         sheet.add_chart(chart_1, f"E2")
-        sheet.column_dimensions['D'].width = 20 
 
         # Add line chart_1 for collective attendance
         chart_2 = BarChart()
@@ -160,28 +158,33 @@ def plot_charts(workbook, workers, total_days_dict):
 def color_fill(colour: str):
     return PatternFill(start_color=f'{colour}', end_color=f'{colour}', fill_type='solid')
 
+def col_let(number: int): # Returns the column letter for and number
+    return get_column_letter(number)
+
 def format_sheet(workbook, workers, total_days_dict):
     for sheet in workbook.worksheets:
         total_days = total_days_dict[sheet.title]
 
-        end_col = get_column_letter(total_days+17)
+        end_col = col_let(total_days+16)
         # Formating row 1 to row 16 and column A
-        cell_row_range = sheet[f'A4:{end_col}16']
+        cell_row_range = sheet[f'A4:{end_col}17']
         for row in cell_row_range:
             for cell_row in row:
                 cell_row.fill = color_fill('f1f3fd')
 
+        # Format columns A,B and 3rd col after remark column
         for row in range(17, 101):  # 101 is excluded
             sheet[f'A{row}'].fill = color_fill('f1f3fd') # For column A
             sheet[f'B{row}'].fill = color_fill('fdfefe') # For column B
+            sheet[f'{col_let(total_days+17)}{row}'].fill = color_fill('f1f3fd')
 
         # General background, text and border formatting
         cell_range = sheet[f'C17:{end_col}100']
         font_style = Font(name='Arial', size=9, bold=True, color='000000')  # Black, bold font
         border_style = Border(left=Side(style='none'),
                              right=Side(style='none'),
-                             top=Side(style='hair'),
-                            bottom=Side(style='hair'))  # Thin border
+                             top=Side(style='hair', color='00CCCCCC'),
+                            bottom=Side(style='hair', color='00CCCCCC'))  # Thin border
         alignment_style = Alignment(horizontal='center', vertical='center')
 
         for row in cell_range:
@@ -204,16 +207,25 @@ def format_sheet(workbook, workers, total_days_dict):
 
         # Create conditional fill pattern for cells with value P
         for column in range(5, total_days + 5):
-            col_letter = get_column_letter(column)
-            cell_range = f"{col_letter}19:{col_letter}{19+len(workers)}"
+            col_letter = col_let(column)
+            cell_range = f"{col_letter}19:{col_letter}{18+len(workers)}"
             # Add conditional formatting rule
             sheet.conditional_formatting.add(
                 cell_range,
-                CellIsRule(operator='equal', formula=['"P"'], fill=color_fill('ADD8E6'))
+                CellIsRule(operator='equal', formula=['"P"'], fill=color_fill('E5EFF8'))
+            )
+            sheet.conditional_formatting.add(
+                cell_range,
+                CellIsRule(operator='equal', formula=['"P'
+                                                      'E"'], fill=color_fill('F7F2E2'))
+            )
+            sheet.conditional_formatting.add(
+                cell_range,
+                CellIsRule(operator='equal', formula=['"L"'], fill=color_fill('EFF7EA'))
             )
 
         # Add conditional formating to the remarks column
-        ave_col_let = get_column_letter(total_days + 14)
+        ave_col_let = col_let(total_days + 14)
         remarks_color= {'28a745': "Excellent", '86c3e0': "Good", 'ffc107': "Average", 'dc3545': "Poor"}
         cell_range = f"{ave_col_let}19:{ave_col_let}{19 + len(workers)}"
         for colour, remark in remarks_color.items():
@@ -222,7 +234,7 @@ def format_sheet(workbook, workers, total_days_dict):
                 CellIsRule(operator='equal', formula=[f'"{remark}"'], fill=color_fill(colour)))
 
         # Format the day and date rows
-        omit = list([get_column_letter(total_days + x) for x in range(5, 12, 6)])
+        omit = list([col_let(total_days + x) for x in range(5, 12, 6)])
         omit_cells = {f'{col}17' for col in omit}.union({f'{col}18' for col in omit}) # Create a set of omitted cell
         for row in sheet[f'C17:{ave_col_let}18']:
             for cell in row:
@@ -235,7 +247,7 @@ def format_sheet(workbook, workers, total_days_dict):
         start_col, end_col = 3, 3 + total_days
         for row in range(19, 101):
             for col in range(start_col, end_col + 1):
-                column_letter = get_column_letter(col)
+                column_letter = col_let(col)
                 if sheet[f'{column_letter}17'].value == "Mon":
                     cells = sheet.cell(row=row, column=col)
                     cells.fill = color_fill('DEE4F2') #
@@ -243,20 +255,23 @@ def format_sheet(workbook, workers, total_days_dict):
                     cells = sheet.cell(row=row, column=col)
                     cells.fill = color_fill('ededee')
 
+        # Formatting for the totals
+        for column in range(total_days + 6, total_days + 11, 2):
+            for row in range(19, 101):
+                cells = sheet.cell(row=row, column=column)
+                if sheet[f'{col_let(column)}17'].value in ['P', 'E', 'N']:
+                    cells.fill = color_fill('E6DED2')
+
         # Pattern fill for the remaining (Unused cells)
         for row in range(1, 101):
-            for cols in range(total_days + 18, 351):
+            for cols in range(total_days + 18, 251):
                 cell_un = sheet.cell(row=row, column=cols)
                 cell_un.fill = color_fill('CCE8CF')
 
-        for row in range(101, 351):
-            # column_let = get_column_letter(col)
-            for col in range(1, 531):
+        for row in range(101, 251):
+            for col in range(1, 251):
                 cell_un = sheet.cell(row=row, column=col)
                 cell_un.fill = color_fill('CCE8CF')
-
-def apply_
-
 
 
 # Main function
@@ -266,8 +281,8 @@ def main():
     workbook.remove(workbook.active)  # Remove default sheet
 
     # Example workers list
-    workers = ['Ashani Akatugba', 'Bassey Nton N.', 'Anointing Obiora', 'Denis Esikpong',
-               'Maurice Tchouncha', 'Nnamso Glory', 'Joseph Onyinye', 'Wilmont Agbor', 'Emmamuel Aniefiok',
+    workers = ['Sheriff Akatugba', 'Bassey Nton Nton', 'Denis Esikpong', 'Obiora Anointing Chimnadindu',
+               'Maurice Tchouncha', 'Nnamso Glory', 'Joseph Onyinye', 'Agbor Wilmont', 'Emmamuel Aniefiok',
                'Ofonime Ufot', 'Blessing Edet', 'Victor Emordi', 'Chris Okoh', 'Christopher Monday', "", "", "", "", ""]
 
     total_days_dict = {}
@@ -289,6 +304,9 @@ def main():
 
     # Add formatting
     format_sheet(workbook, workers, total_days_dict)
+
+    # Add size formatting
+    # format_cell_size(workbook, workers,total_days_dict)
 
     # Save the workbook
     workbook.save("ADJ_ATTENDANCE_PROTOTYPE.xlsx")

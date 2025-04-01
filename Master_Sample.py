@@ -360,7 +360,7 @@ def main():
 
     # Create sheets for each month
     for month in list(calendar.month_name)[1:]:
-        sheet, avg_col, remarks_col, total_days = create_month_sheet(workbook, month, year)
+        sheet, avlg_col, remarks_col, total_days = create_month_sheet(workbook, month, year)
         total_days_dict[month] = total_days
 
         # Add worker names

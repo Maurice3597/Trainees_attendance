@@ -352,9 +352,8 @@ def main():
     workbook.remove(workbook.active)  # Remove default sheet
 
     # Example workers list
-    workers = ['Sheriff Akatugba', 'Bassey Nton Nton', 'Denis Esikpong', 'Obiora Anointing Chimnadindu',
-               'Maurice Tchouncha', 'Nnamso Glory', 'Joseph Onyinye', 'Agbor Wilmont', 'Emmamuel Aniefiok',
-               'Ofonime Ufot', 'Blessing Edet', 'Victor Emordi', 'Christopher Monday', 'Chris Okoh', "", "", "", "", "", "",  "", "", "", "", "", ""]
+    workers = [ "", "", "", "", "", "",  "", "", "", "", "", "", "", "", "", "", "", "",  "", "", "", "", "", "",
+                "", "", "", "", "", "",  "", "", "", "", "", "", "", "", "", "", "", "",  "", "", "", "", "", ""]
 
     total_days_dict = {}
 
